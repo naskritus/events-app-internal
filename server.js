@@ -22,7 +22,25 @@ const mockEvents = {
         { title: 'another event', id: 2, description: 'something even cooler' }
     ]
 };
-
+function getEvents(req, res) {
+    firestore.collection("Events").get()
+        .then((snapshot) => {
+            if (!snapshot.empty) {
+                const ret = { events: []};
+                snapshot.docs.forEach(element => {
+                    ret.events.push(element.data());
+                }, this);
+                console.log(ret);
+                res.json(ret);
+            } else {
+                 res.json(mockEvents);
+            }
+        })
+        .catch((err) => {
+            console.error('Error getting events', err);
+            res.json(mockEvents);
+        });
+};
 // bring in firestore
 const Firestore = require("@google-cloud/firestore");
 
@@ -52,26 +70,6 @@ app.get('/version', (req, res) => {
 app.get('/events', (req, res) => {
     getEvents(req, res);
 });
-
-function getEvents(req, res) {
-    firestore.collection("Events").get()
-        .then((snapshot) => {
-            if (!snapshot.empty) {
-                const ret = { events: []};
-                snapshot.docs.forEach(element => {
-                    ret.events.push(element.data());
-                }, this);
-                console.log(ret);
-                res.json(ret);
-            } else {
-                 res.json(mockEvents);
-            }
-        })
-        .catch((err) => {
-            console.error('Error getting events', err);
-            res.json(mockEvents);
-        });
-};
 
 // Adds an event - in a real solution, this would insert into a cloud datastore.
 // Currently this simply adds an event to the mock array in memory
